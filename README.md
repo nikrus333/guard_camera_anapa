@@ -1,0 +1,1 @@
+# guard_camera_anapa

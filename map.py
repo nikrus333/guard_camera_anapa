@@ -4,7 +4,7 @@ class GetMap():
 
     def __init__(self):  
 # Enter your api key here
-        self.api_key = "AIzaSyASXnIEDohSDNgQEtqLFlUeZCVXytQW0xs"
+        self.api_key = ""
   
 # url variable store url
         self.url = "https://maps.googleapis.com/maps/api/staticmap?"

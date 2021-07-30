@@ -6,7 +6,7 @@ import algoritm
 import create_json
 import map
 import server_data
-
+import threading
 
 class Application():
     def __init__(self):
@@ -14,17 +14,17 @@ class Application():
             a video stream in a Tkinter window and stores current snapshot on disk """
         self.cam = test.Cam()
         self.algoritm = algoritm.CoordAlgoritm()
-        self.map =map.GetMap()
+        self.map = map.GetMap()
         self.create_file = create_json.CreteJsonFile()
 
-        #self.server = server_data.ServerUDP('1')
-        #self.server.start()
+        self.server = server_data.ServerUDP('1')
+        self.thred = threading.Thread(target=self.server.run)
+        self.thred.start()
         self.vs = self.cam.cap # capture video frames, 0 is your default video camera
         self.current_image = None  # current image from the camera
         
         self.root = tk.Tk()  # initialize root window
         self.root.title("dron.exe")  # set window title
-        # self.destructor function gets fired when the window is closed
         self.root.protocol('WM_DELETE_WINDOW', self.destructor)
         self.root.geometry('1920x1080')
         self.panel = tk.Label(self.root)  # initialize image panel
@@ -47,11 +47,12 @@ class Application():
             frame = cv2.circle(frame,(800, 450), 5, (255, 0, 0), 2, 8, 0)
             cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)  # convert colors from BGR to RGBA
             self.current_image = Image.fromarray(cv2image)  # convert image for PIL
-            imgtk = ImageTk.PhotoImage(image=self.current_image
-            )  # convert image for tkinter
+            imgtk = ImageTk.PhotoImage(image=self.current_image)  # convert image for tkinter
             self.panel.imgtk = imgtk  # anchor imgtk so it does not be deleted by garbage-collector
             self.panel.config(image=imgtk)  # show the image
-            #self.server.action_server()
+            #print('count ', self.server.count)
+            #print('count_err ', self.server.count_err)
+            print(self.cam.read_data())
         self.root.after(1, self.video_loop)
         #print(self.coord)  # call the same function after 30 milliseconds
     def motion(self, event):
@@ -60,11 +61,10 @@ class Application():
        
 
     def take_snapshot(self):
-        print('_____________')
-        print(self.cam.read_data())
+        ##print(self.cam.read_data())
         print('_____________')
         _ = self.algoritm.solution(self.cam.read_data(), self.cord_final_mouse) # method solution_mouse or solution
-        #self.server.send_client(str(_))
+        self.server.send_client(_)
         self.create_file.create(_)
         try:
             self.map.get_map_image(coord_dot_sos = _)
@@ -83,6 +83,7 @@ class Application():
     def destructor(self):
         """ Destroy the root object and release all resources """
         print("[INFO] closing...")
+        self.server.life = False
         self.root.destroy()
         self.vs.release()  # release web camera
         cv2.destroyAllWindows()  # it is not mandatory in this application

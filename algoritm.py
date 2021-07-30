@@ -2,7 +2,7 @@ import math
 # 44°54'12.2"N 37°18'49.4"E
 class CoordAlgoritm():
     def __init__(self, angle_cam = [70, 80, 0], coord_mouse = [600, 450], scale_windows = 1):
-        self.H_CAM_ = 5.9 #высота камеры над уровнем моря
+        self.H_CAM_ = 6.3 #высота камеры над уровнем моря
         self.angle_cam = angle_cam
         self.viewing_angle_cam_gorizontal = 56.1 /2
         self.viewing_angle_cam_vertical = 33.4 / 2
@@ -127,7 +127,7 @@ class CoordAlgoritm():
         # x_coord y_coord координаты точки на воде, куда падает луч из центра камеры
         x_coord = math.sin(self.gradus_to_radian(self.angle_cam[0])) * b_catet
         y_coord = math.cos(self.gradus_to_radian(self.angle_cam[0])) * b_catet
-        
+
         coord_ = self.angle_cam_azimut(angle_cam, b_catet)
         return coord_
 

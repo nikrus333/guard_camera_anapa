@@ -42,7 +42,7 @@ class Cam():
         self.position['z']       = self.status.Position.Zoom.x
         mass = [0, 0, 0]
         mass[0] = self.position['x'] * 180   # преобразование координат камеры в углы 
-        mass[1] = self.position['y'] * 180 / 3.14 + 53.8
+        mass[1] = self.position['y'] * 180 / 3.14 + 53.271
         mass[2] = self.position['z']
         return (mass)
 

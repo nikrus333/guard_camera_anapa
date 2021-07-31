@@ -1,25 +1,71 @@
+import os
+basedir = os.path.abspath(os.path.dirname(__file__))
+
 from PIL import Image, ImageTk
 import tkinter as tk
 import cv2
-import test
+#from test import Cam
 import algoritm
 import create_json
 import map
 import server_data
-import threading
+import client
+#import threading
+
+class Cam():
+    def __init__(self) :
+        CAM_HOST = '192.168.88.253'
+        CAM_PORT = 80
+        CAM_USER = 'admin'
+        CAM_PASS = 'Aa1234567890'
+        self.mycam = client.ONVIFCamera(CAM_HOST, CAM_PORT, CAM_USER, CAM_PASS)
+        self.media2_service = self.mycam.create_media2_service()
+        self.profiles = self.media2_service.GetProfiles()[0]
+        self.ptz = self.mycam.create_ptz_service()
+        self.ptzConfigurationsList = self.mycam.ptz.GetConfigurations()
+        self.ptzConfiguration = self.ptzConfigurationsList[0]
+        self.request = self.ptz.create_type('GetConfigurationOptions')
+
+# set profile token
+        self.requestPtzStatus                = self.ptz.create_type('GetStatus')
+        self.requestPtzStatus.ProfileToken   = self.profiles.token
+        self.status                          = self.ptz.GetStatus(self.requestPtzStatus)
+
+        self.position = { }
+        self.position['x']       = self.status.Position.PanTilt.x
+        self.position['y']       = self.status.Position.PanTilt.y
+        self.position['z']       = self.status.Position.Zoom.x
+        self.o = self.media2_service.create_type('GetStreamUri')
+        self.o.ProfileToken = self.profiles.token
+        self.o.Protocol = 'RTSP'
+        self.uri = self.media2_service.GetStreamUri(self.o)
+        self.cap = cv2.VideoCapture('rtsp://admin:Aa1234567890@192.168.88.253/Streaming/Channels/101?transportmode=unicast&profile=Profile_1')
+        self.dic = {'token': self.profiles.token,
+                'rtsp': self.uri}
+
+    def read_data(self):
+        self.status                          = self.ptz.GetStatus(self.requestPtzStatus)
+        self.position['x']       = self.status.Position.PanTilt.x
+        self.position['y']       = self.status.Position.PanTilt.y
+        self.position['z']       = self.status.Position.Zoom.x
+        mass = [0, 0, 0]
+        mass[0] = self.position['x'] * 180   # преобразование координат камеры в углы 
+        mass[1] = self.position['y'] * 180 / 3.14 + 53.271
+        mass[2] = self.position['z']
+        return (mass)
 
 class Application():
     def __init__(self):
         """ Initialize application which uses OpenCV + Tkinter. It displays
             a video stream in a Tkinter window and stores current snapshot on disk """
-        self.cam = test.Cam()
+        self.cam = Cam()
         self.algoritm = algoritm.CoordAlgoritm()
         self.map = map.GetMap()
         self.create_file = create_json.CreteJsonFile()
 
         self.server = server_data.ServerUDP('1')
-        self.thred = threading.Thread(target=self.server.run)
-        self.thred.start()
+        #self.thred = threading.Thread(target=self.server.run)
+        #self.thred.start()
         self.vs = self.cam.cap # capture video frames, 0 is your default video camera
         self.current_image = None  # current image from the camera
         
@@ -52,7 +98,6 @@ class Application():
             self.panel.config(image=imgtk)  # show the image
             #print('count ', self.server.count)
             #print('count_err ', self.server.count_err)
-            print(self.cam.read_data())
         self.root.after(1, self.video_loop)
         #print(self.coord)  # call the same function after 30 milliseconds
     def motion(self, event):

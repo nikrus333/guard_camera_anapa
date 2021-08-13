@@ -26,16 +26,16 @@ class ServerUDP():
             try:
                 if self.life == False:
                     break
-                # self.bytesAddressPair = self.UDPServerSocket.recvfrom(self.bufferSize)
-                # self.message = self.bytesAddressPair
-                # clientMsg = "Message from Client:{}".format(self.message)
-                # clientIP  = "Client IP Address:{}".format(self.address)
+                self.bytesAddressPair = self.UDPServerSocket.recvfrom(self.bufferSize)
+                self.message = self.bytesAddressPair
+                clientMsg = "Message from Client:{}".format(self.message)
+                clientIP  = "Client IP Address:{}".format(self.address)
                 time.sleep(100)
             except socket.timeout as err:
                 self.err = err
     
-    def send_client(self, data_coord):
-        string ='#' + str(data_coord[0]) + '#' + str(data_coord[1])
+    def send_client(self, string):
+        
         self.msgFromServer       = string
         self.bytesToSend         = str.encode(self.msgFromServer)
         self.address             =  ("127.0.0.1", 7777) #("192.168.52.244", 7777)

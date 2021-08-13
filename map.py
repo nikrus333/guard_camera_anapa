@@ -9,10 +9,6 @@ class GetMap():
 # url variable store url
         self.url = "https://maps.googleapis.com/maps/api/staticmap?"
   
-# center defines the center of the map,
-# equidistant from all edges of the map. 
-        self.center = ""
-  
 # zoom defines the zoom
 # level of the map
         self.zoom = 17
@@ -24,7 +20,7 @@ class GetMap():
         "center=" + str(coord_center[0]) + "," + str(coord_center[1])+"&zoom=" +
         str(self.zoom) + "&size=400x600&maptype=satellite&markers=color:blue%7Clabel:Anaspas%7C" + 
         str(coord_anaspas[0]) + "," + str(coord_anaspas[1]) + 
-        "&markers=color:blue%7Clabel:dot%7C" + 
+        "&markers=color:red%7Clabel:dot%7C" + 
         str(coord_dot_sos[0]) + "," + str(coord_dot_sos[1]) +
         "&key=" + self.api_key)
   

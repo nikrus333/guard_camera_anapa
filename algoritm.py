@@ -40,50 +40,6 @@ class CoordAlgoritm():
                 if dy > 0:
                     result = 0
                     
-    def get_directional_angle(self, x2, y2, x1, y1):
-        dx = x2 - x1
-        dy = y2 - y1
-        if dx == 0:
-            if dy > 0:
-                return 0
-            if dy < 0:
-                return self.gradus_to_radian(180)
-        if dy == 0:
-            if dx > 0:
-                return self.gradus_to_radian(90)
-            if dx < 0:
-                return self.gradus_to_radian(270)
-        if dx > 0 and dy > 0:
-            i_quarter = 1
-        if dx > 0 and dy < 0:
-            i_quarter = 2
-        if dx < 0 and dy < 0:
-            i_quarter = 3
-        if dx < 0 and dy > 0:
-            i_quarter = 4
-        
-        dx = abs(dx)
-        dy = abs(dy)
-        if dx == 0:
-            dy = 0.00000000001
-        if dy == 0:
-            dy = 0.00000000001
-        f_angle = math.atan(dx / dy)
-        if i_quarter == 1:
-            return self.gradus_to_radian(90) - f_angle
-        else:
-            if i_quarter == 2:
-                return self.gradus_to_radian(90) - self.gradus_to_radian(360) - f_angle
-            else:
-                if i_quarter == 3:
-                    return self.gradus_to_radian(90) - self.gradus_to_radian(180) + f_angle
-                else:
-                    if i_quarter == 4:
-                        return self.gradus_to_radian(90) - self.gradus_to_radian(180) - f_angle
-                    else:
-                        return 0
-
-
     def coordinat(self, x1, y1, x2, y2, dist_, ugol, vugol):
         buf = self.get_directional_angle(x2, y2, x1, y1)
         buf2 = self.gradus_to_radian(ugol) + (self.gradus_to_radian(90) - buf)

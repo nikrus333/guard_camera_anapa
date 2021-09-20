@@ -123,7 +123,6 @@ class Application():
             else:
                 color = (255, 0, 0)
                 radius = 5
-            print(self.algoritm.H_CAM_)
             frame = cv2.circle(frame,(800, 450), radius, color, 2, 8, 0)
             cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)  # convert colors from BGR to RGBA
             self.current_image = Image.fromarray(cv2image)  # convert image for PIL

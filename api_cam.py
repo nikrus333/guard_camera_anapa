@@ -1,18 +1,22 @@
 import os
+from settings import Settings
 from tkinter.constants import BOTH
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 from PIL import Image, ImageTk
 import tkinter as tk
 import cv2
+from tkinter import Frame, messagebox, filedialog
+from tkinter.ttk import Notebook
+import threading
+import json
+from importlib import reload
+
 import algoritm
 import create_json
 import map
 import server_data
-from tkinter import Frame, messagebox, filedialog
-from tkinter.ttk import Notebook
-import client
-import threading
+import settings
 '''
 class Cam():
     def __init__(self) :
@@ -91,10 +95,18 @@ class Application():
     def __init__(self):
         """ Initialize application which uses OpenCV + Tkinter. It displays
             a video stream in a Tkinter window and stores current snapshot on disk """
+       
+        self.setting = settings.Settings()
+
         ##self.cam = Cam()
+
+
         self.algoritm = algoritm.CoordAlgoritm()
+        self.algoritm.H_CAM_ = self.setting.hight
+        self.algoritm.azimut_ahgle_cam = self.setting.azimut_ahgle_cam
+
         self.map = map.GetMap()
-        self.create_file = create_json.CreteJsonFile()
+        #self.create_file = create_json.CreteJsonFile()
         self.server = server_data.ServerUDP('1')
         self.vs = cv2.VideoCapture(0)   ##self.cam.cap # capture video frames, 0 is your default video camera
         self.current_image = None  # current image from the camera
@@ -111,6 +123,7 @@ class Application():
             else:
                 color = (255, 0, 0)
                 radius = 5
+            print(self.algoritm.H_CAM_)
             frame = cv2.circle(frame,(800, 450), radius, color, 2, 8, 0)
             cv2image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)  # convert colors from BGR to RGBA
             self.current_image = Image.fromarray(cv2image)  # convert image for PIL
@@ -137,7 +150,7 @@ class Application():
             ##_ = self.algoritm.solution(self.cam.read_data(), self.cord_final_mouse) # method solution_mouse or solution
             _ = [43, 33]
             
-            self.create_file.create(_)
+            #self.create_file.create(_)
             string ='#' + str(_[0]) + '#' + str(_[1])
             self.server.send_client(string)
             try:
@@ -164,7 +177,8 @@ class Application():
     def open_file(self):
         file_name = filedialog.askopenfilename()
         with open(file_name, "r") as f:
-            print(f.read())
+            data = json.load(f)
+            self.setting.read_data_from_file(data)
  
     def destructor(self):
         """ Destroy the root object and release all resources """

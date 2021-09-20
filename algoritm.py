@@ -2,14 +2,14 @@ import math
 # 44°54'12.2"N 37°18'49.4"E
 class CoordAlgoritm():
     def __init__(self, angle_cam = [70, 80, 0], coord_mouse = [600, 450], scale_windows = 1):
-        self.H_CAM_ = 6.3 #высота камеры над уровнем моря
+        self.H_CAM_ = 6.4 #высота камеры над уровнем моря
         self.angle_cam = angle_cam
         self.viewing_angle_cam_gorizontal = 56.1 /2
         self.viewing_angle_cam_vertical = 33.4 / 2
         self.coord_mouse_windows = coord_mouse
         self.cam_coord_N = 44.901561
         self.cam_coord_E = 37.316337
-        self.azimut_ahgle_cam = 58.1041
+        self.azimut_ahgle_cam = 58.5#62 #58.1041
         self.zero_angle_cam = 90 - self.azimut_ahgle_cam
 
     def gradus_to_radian(self, grad):
@@ -101,16 +101,16 @@ class CoordAlgoritm():
         #angle = 58.5 - angle_cam[0] 
         #shir = math.cos(self.gradus_to_radian(angle)) *  b_catet
         #dolgota = math.sin(self.gradus_to_radian(angle)) *  b_catet
-        if angle_cam[0] >= - self.zero_angle_cam:
-            angle = 58.5 - angle_cam[0] 
-            print("angle_new", angle)
+        if angle_cam[0] >= -1 * self.zero_angle_cam:
+            angle = self.azimut_ahgle_cam - angle_cam[0] 
+            print("angle_new_1", angle)
             shir = math.cos(self.gradus_to_radian(angle)) *  b_catet
             dolgota = math.sin(self.gradus_to_radian(angle)) *  b_catet
             new_shir = self.cam_coord_N + (shir * 0.00000000001 / 0.000001111 )
             new_dologota = self.cam_coord_E - (dolgota * 0.0000001 / 0.007876)
-        if angle_cam[0] < - self.zero_angle_cam:
+        if angle_cam[0] <  -1 * self.zero_angle_cam:
             angle = - self.zero_angle_cam - angle_cam[0]
-            print("angle_new", angle)
+            print("angle_new_2", angle)
             shir = math.sin(self.gradus_to_radian(angle)) *  b_catet
             dolgota = math.cos(self.gradus_to_radian(angle)) *  b_catet
             new_shir = self.cam_coord_N - (shir * 0.00000000001 / 0.000001111 )

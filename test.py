@@ -1,6 +1,7 @@
-from __future__ import print_function, division
+
 import cv2
-from onvif2 import ONVIFCamera, ONVIFError
+import client
+
 
 DEBUG = False
 
@@ -10,7 +11,7 @@ class Cam():
         CAM_PORT = 80
         CAM_USER = 'admin'
         CAM_PASS = 'Aa1234567890'
-        self.mycam = ONVIFCamera(CAM_HOST, CAM_PORT, CAM_USER, CAM_PASS)
+        self.mycam = client.ONVIFCamera(CAM_HOST, CAM_PORT, CAM_USER, CAM_PASS)
         self.media2_service = self.mycam.create_media2_service()
         self.profiles = self.media2_service.GetProfiles()[0]
         self.ptz = self.mycam.create_ptz_service()
@@ -42,7 +43,7 @@ class Cam():
         self.position['z']       = self.status.Position.Zoom.x
         mass = [0, 0, 0]
         mass[0] = self.position['x'] * 180   # преобразование координат камеры в углы 
-        mass[1] = self.position['y'] * 180 / 3.14 + 53.271
+        mass[1] = self.position['y'] * 180 / 3.14 + 53.273
         mass[2] = self.position['z']
         return (mass)
 

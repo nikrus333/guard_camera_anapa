@@ -6,17 +6,16 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 from PIL import Image, ImageTk
 import tkinter as tk
 import cv2
-from tkinter import Frame, messagebox, filedialog
-from tkinter.ttk import Notebook
+from tkinter import Frame, messagebox, filedialog, LEFT, BOTH, X
+from tkinter.ttk import Notebook, Frame, Entry
 import threading
 import json
-from importlib import reload
-
+import pyproj
 import algoritm
-import create_json
 import map
 import server_data
 import settings
+import client
 '''
 class Cam():
     def __init__(self) :
@@ -24,6 +23,7 @@ class Cam():
         CAM_PORT = 80
         CAM_USER = 'admin'
         CAM_PASS = 'Aa1234567890'
+        self.K_vertical = 52.8014
         self.mycam = client.ONVIFCamera(CAM_HOST, CAM_PORT, CAM_USER, CAM_PASS)
         self.media2_service = self.mycam.create_media2_service()
         self.profiles = self.media2_service.GetProfiles()[0]
@@ -43,9 +43,19 @@ class Cam():
         self.o.ProfileToken = self.profiles.token
         self.o.Protocol = 'RTSP'
         self.uri = self.media2_service.GetStreamUri(self.o)
-        self.cap = cv2.VideoCapture('rtsp://admin:Aa1234567890@192.168.88.253/Streaming/Channels/101?transportmode=unicast&profile=Profile_1')
+        self.cap = cv2.VideoCapture('rtsp://' + CAM_USER +':' + 'CAM_PASS' + '@' + CAM_HOST + '/Streaming/Channels/101?transportmode=unicast&profile=Profile_1')
         self.dic = {'token': self.profiles.token,
                 'rtsp': self.uri}
+    def read_clear_data(self):
+        self.status                          = self.ptz.GetStatus(self.requestPtzStatus)
+        self.position['x']       = self.status.Position.PanTilt.x
+        self.position['y']       = self.status.Position.PanTilt.y
+        self.position['z']       = self.status.Position.Zoom.x
+        mass = [0, 0, 0]
+        mass[0] = self.position['x'] * 180   # преобразование координат камеры в углы 
+        mass[1] = self.position['y'] * 180 / 3.14
+        mass[2] = self.position['z']
+        return (mass)
     def read_data(self):
         self.status                          = self.ptz.GetStatus(self.requestPtzStatus)
         self.position['x']       = self.status.Position.PanTilt.x
@@ -53,7 +63,7 @@ class Cam():
         self.position['z']       = self.status.Position.Zoom.x
         mass = [0, 0, 0]
         mass[0] = self.position['x'] * 180   # преобразование координат камеры в углы 
-        mass[1] = self.position['y'] * 180 / 3.14 + 52.8014
+        mass[1] = self.position['y'] * 180 / 3.14 + self.K_vertical
         mass[2] = self.position['z']
         return (mass)
 '''
@@ -65,6 +75,7 @@ class Application():
         self.root.title("Система мониторинга")  # set window title
         self.root.protocol('WM_DELETE_WINDOW', self.destructor)
         self.root.geometry('1920x1080')
+
         self.tabs_control = Notebook(self.root)
         self.tab_1 = Frame(self.tabs_control)
         self.tabs_control.add(self.tab_1, text='Наблюдение')
@@ -76,12 +87,22 @@ class Application():
         self.panel.bind('<Motion>', self.motion)
         btn = tk.Button(self.tab_1, width=30, text="отправить координаты", bd=1, font="Arial 14", command=self.sendCord)
         btn1 = tk.Button(self.tab_1, width=30, text="        запуск дрона         ", bd=1, fg="red", font="Arial 14", command=self.startDron)
+        #lbl1 = tk.Label(self.tab_2, text="Заголовок", width=10)
+        #lbl1.pack(side=LEFT, padx=5, pady=5)
+ 
+        #entry1 = Entry(self.tab_2)
+        #entry1.pack(fill=X, padx=5, expand=True)
         self.panel.bind("<Button-2>",self.fun)
+
         btn_tab_2 = tk.Button(self.tab_2, width=30, text="Начать калибровку", bd=1, font="Arial 14", command=self.calibrate)
+        btn_tab_2_k_vir = tk.Button(self.tab_2, width=30, text="Вычислить вертикальный коэффициент", bd=1, font="Arial 14", command=self.find_k_virtual)
         btn_tab_2_file = tk.Button(self.tab_2, width=30, text="Загрузить файл конфигурации", bd=1, font="Arial 14", command=self.open_file)
+        mesbox =messagebox.showinfo(title="Система мониторинга", message="Добро пожаловать в систему мониторинга! \nЦелевая точка определяется наведение синей мишени на цель и нажатием средней кнопки мыши \n ")  
         btn.pack()
         btn1.pack()
+        
         btn_tab_2.pack()
+        btn_tab_2_k_vir.pack()
         btn_tab_2_file.pack()
         self.coord_actual = [None, None]
         self.cord_final_mouse = [None, None]
@@ -90,20 +111,19 @@ class Application():
         self.video_loop()
 
         
-        
-
     def __init__(self):
         """ Initialize application which uses OpenCV + Tkinter. It displays
             a video stream in a Tkinter window and stores current snapshot on disk """
        
         self.setting = settings.Settings()
 
-        ##self.cam = Cam()
-
+        #self.cam = Cam()
 
         self.algoritm = algoritm.CoordAlgoritm()
         self.algoritm.H_CAM_ = self.setting.hight
         self.algoritm.azimut_ahgle_cam = self.setting.azimut_ahgle_cam
+        self.algoritm.cam_coord_N = self.setting.coordinates[0]
+        self.algoritm.cam_coord_E = self.setting.coordinates[1]
 
         self.map = map.GetMap()
         #self.create_file = create_json.CreteJsonFile()
@@ -168,10 +188,22 @@ class Application():
     def fun(self, event):
         self.cord_final_mouse = self.coord_actual
         self.flaf_detection_dot = True
-        self.mesbox =messagebox.showinfo(title="Точка определена", message="Точка определена")
+        mesbox =messagebox.showinfo(title="Точка определена", message="Точка определена")
         
     def calibrate(self):
-         self.mesbox =messagebox.showinfo(title="Dron", message="Калибровка прошла успешно")    
+        mesbox =messagebox.showinfo(title="Dron", message="Перейдите во вкладку наблюдение и наведите синюю мишень на уровень горизонта\n"
+                                                + "Далее перейдите во вкладку Настройки  и нажмите кнопку Вычислить вертикальный коэффициент")    
+    def find_k_virtual(self):
+        k = 90 #- self.cam.read_clear_data()[1]
+        with open('config.json') as f:
+            data = json.load(f)
+        data['K_vertical'] = k
+        print(data)
+        with open('config.json', 'w') as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+
+        mesbox =messagebox.showinfo(title="Dron", message="Далее перейдите во вкладку наблюдение и наведите синюю мишень на точку с известными координатами\n"
+                                                + "Далее перейдите во вкладку Настройки  и") 
 
     def open_file(self):
         file_name = filedialog.askopenfilename()

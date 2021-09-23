@@ -1,9 +1,14 @@
 {
-    "coordinates": [23, 55],
+    "coordinates": [
+        23,
+        55
+    ],
     "hight": 6.4,
-    "azimut_ahgle_cam" : 58.5,
-    "ip_camera" : "192.168.88.253",
-    "login" : "admin",
-    "password" : "Aa1234567890",
-    "key_google_maps" : "gg" 
+    "azimut_ahgle_cam": 58.5,
+    "K_vertical": 90,
+    "ip_camera": "192.168.88.253",
+    "login": "admin",
+    "password": "Aa1234567890",
+    "port": 80,
+    "key_google_maps": "gg"
 }

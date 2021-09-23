@@ -10,6 +10,7 @@ class Settings():
         self.ip_camera =  data["ip_camera"]
         self.login =  data["login"]
         self.password = data["password"]
+        self.port = data["port"]
         self.key_google_maps =   data["key_google_maps"]
 
     def read_data_from_file(self, data):
